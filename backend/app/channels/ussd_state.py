@@ -47,13 +47,16 @@ def parse_submission(text: str) -> UssdResult:
             return UssdResult("CON Please give a little more detail:")
         category = CATEGORIES.get(parts[2])
         if not category:
-            return UssdResult("END Invalid category. Please start again.")
+            return UssdResult("CON Invalid category. Choose 1-5:")
         return UssdResult(
             f"CON Submit this report?\nWard: {parts[1]}\nCategory: {category}\n1. Yes\n2. No"
         )
 
     category = CATEGORIES.get(parts[2])
-    if category and parts[4] == "1":
+    if not category:
+        return UssdResult("CON Invalid category. Choose 1-5:")
+
+    if parts[4] == "1":
         return UssdResult(
             "END Thank you. Your development need has been recorded.",
             completed=True,
