@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +29,18 @@ class Settings(BaseSettings):
 
     stt_provider: str = "fake"
     stt_api_key: str = ""
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, v: object) -> object:
+        # Render's fromDatabase connectionString uses the postgres:// scheme,
+        # which SQLAlchemy rejects; pin it to the installed psycopg driver.
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return "postgresql+psycopg://" + v[len("postgres://") :]
+            if v.startswith("postgresql://"):
+                return "postgresql+psycopg://" + v[len("postgresql://") :]
+        return v
 
 
 @lru_cache
