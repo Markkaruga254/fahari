@@ -23,19 +23,19 @@ Resident -> Africa's Talking (USSD / Voice) -> FastAPI -> validate -> PostgreSQL
 
 | Gate | Scope | Status |
 |---|---|---|
-| 1 | Skeleton + Africa's Talking connectivity | in progress |
-| 2 | USSD -> FastAPI -> PostgreSQL | - |
-| 3 | AI enrichment + fallback + clustering + SMS | - |
-| 4 | Priority engine + APIs + seed data | - |
-| 5 | Dashboard (Next.js) | - |
-| 6 | Voice + project tracking | - |
-| 7 | End-to-end testing + hardening | - |
-| 8 | Demo / release | - |
+| 1 | Skeleton + Africa's Talking connectivity | complete |
+| 2 | USSD -> FastAPI -> PostgreSQL | **implemented on `build/people-priorities-core`** |
+| 3 | AI enrichment + fallback + clustering + SMS | next |
+| 4 | Priority engine + APIs + seed data | pending |
+| 5 | Dashboard (Next.js) | pending |
+| 6 | Voice + project tracking | pending |
+| 7 | End-to-end testing + hardening | pending |
+| 8 | Demo / release | pending |
 
 ## Quick start
 
 ```bash
-cp .env.example .env            # then edit: WEBHOOK_SECRET, AT_API_KEY, ...
+cp .env.example .env            # then edit: WEBHOOK_SECRET, PHONE_HASH_PEPPER, AT_API_KEY, ...
 docker compose up -d --build    # postgres + api on :8000
 curl localhost:8000/health      # {"status":"ok","db":"up"}
 ```
@@ -46,7 +46,14 @@ Run tests without Docker:
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pytest
+pytest -q
+```
+
+Run the API locally:
+
+```bash
+cd backend
+uvicorn app.main:app --reload --port 8000
 ```
 
 ## Expose the webhook to Africa's Talking
@@ -63,14 +70,25 @@ In the AT sandbox dashboard, set the USSD callback URL to:
 https://<your-tunnel-host>/ussd/<WEBHOOK_SECRET>
 ```
 
+The current Gate 2 USSD flow is:
+
+```text
+1 Report a need
+  -> ward
+  -> category (water / roads / health / education / other)
+  -> description
+  -> confirmation
+  -> PostgreSQL submission
+```
+
 ## Layout
 
 ```
 backend/app/
   main.py         FastAPI app
   config.py       settings from env
-  db/             SQLAlchemy session (models arrive per gate)
-  channels/       USSD (and later Voice) webhooks
+  db/             SQLAlchemy session + submission model
+  channels/       USSD webhook + pure state machine
   notify/         Notifier interface, FakeNotifier, Africa's Talking adapter
   ai/             Extractor interface + fallback (Gate 3)
   stt/            SpeechToText interface (Gate 6)

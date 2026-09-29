@@ -1,6 +1,9 @@
 import os
 
 os.environ["WEBHOOK_SECRET"] = "test-secret"
+os.environ["PHONE_HASH_PEPPER"] = "test-pepper"
+os.environ["AI_ENABLED"] = "false"
+os.environ["STT_PROVIDER"] = "fake"
 
 import pytest
 from fastapi.testclient import TestClient

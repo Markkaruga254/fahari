@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: peoples-priorities-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /ready
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: AUTO_CREATE_DB
+        value: "true"
+      - key: DEMO_MODE
+        value: "false"
+      - key: AI_ENABLED
+        value: "false"
+      - key: STT_PROVIDER
+        value: fake
+      - key: DATABASE_URL
+        fromDatabase:
+          name: peoples-priorities-db
+          property: connectionString
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: PHONE_HASH_PEPPER
+        generateValue: true
+      - key: DASHBOARD_API_KEY
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        fromService:
+          name: peoples-priorities-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: AT_USERNAME
+        value: sandbox
+      - key: AT_API_KEY
+        sync: false
+      - key: AT_SENDER_ID
+        sync: false
+      - key: AT_VOICE_NUMBER
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+databases:
+  - name: peoples-priorities-db
+    plan: free
+    postgresMajorVersion: "16"
