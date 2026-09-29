@@ -2,12 +2,15 @@ import hmac
 
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import PlainTextResponse
+from sqlalchemy.orm import Session
 
+from app.channels.ussd_state import parse_submission
 from app.config import Settings, get_settings
+from app.db.models import Submission
+from app.db.session import get_session
+from app.security import hash_phone
 
 router = APIRouter()
-
-WELCOME = "CON Welcome to People's Priorities\n1. Report a need\n2. Community priorities"
 
 
 @router.post("/ussd/{secret}", response_class=PlainTextResponse)
@@ -19,8 +22,26 @@ def ussd_callback(
     text: str = Form("", max_length=200),
     networkCode: str = Form("", max_length=32),
     settings: Settings = Depends(get_settings),
+    db: Session = Depends(get_session),
 ):
     if not settings.webhook_secret or not hmac.compare_digest(secret, settings.webhook_secret):
         raise HTTPException(status_code=404)
-    # Gate 1 stub: real state machine arrives in Gate 2.
-    return PlainTextResponse(WELCOME, media_type="text/plain")
+
+    result = parse_submission(text)
+
+    if result.completed:
+        try:
+            phone_hash = hash_phone(phoneNumber, settings.phone_hash_pepper)
+        except ValueError as exc:
+            raise HTTPException(status_code=503, detail="Service is not configured") from exc
+
+        submission = Submission(
+            phone_hash=phone_hash,
+            ward=result.ward[:120],
+            category=result.category,
+            description=result.description[:200],
+        )
+        db.add(submission)
+        db.commit()
+
+    return PlainTextResponse(result.response, media_type="text/plain")
