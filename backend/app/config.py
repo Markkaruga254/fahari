@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     demo_mode: bool = False
     public_base_url: str = ""
+    auto_create_db: bool = False
 
     webhook_secret: str = ""
     phone_hash_pepper: str = ""
