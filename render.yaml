@@ -5,7 +5,7 @@ services:
     plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    healthCheckPath: /health
+    healthCheckPath: /ready
     envVars:
       - key: APP_ENV
         value: production
@@ -43,7 +43,6 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false
 
-  
 databases:
   - name: peoples-priorities-db
     plan: free
