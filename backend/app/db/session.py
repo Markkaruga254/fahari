@@ -1,12 +1,7 @@
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from app.config import get_settings
-
-
-class Base(DeclarativeBase):
-    pass
-
 
 _engine = None
 _SessionLocal = None
@@ -16,7 +11,11 @@ def get_engine():
     global _engine, _SessionLocal
     if _engine is None:
         _engine = create_engine(get_settings().database_url, pool_pre_ping=True)
-        _SessionLocal = sessionmaker(bind=_engine, autoflush=False)
+        _SessionLocal = sessionmaker(
+            bind=_engine,
+            autoflush=False,
+            expire_on_commit=False,
+        )
     return _engine
 
 
