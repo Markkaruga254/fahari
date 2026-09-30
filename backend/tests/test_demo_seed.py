@@ -179,3 +179,10 @@ def test_priorities_api_real_only_has_no_synthetic_data(SessionLocal):
     finally:
         app.dependency_overrides.clear()
         db.close()
+
+
+
+@pytest.mark.parametrize("env", ["production", "Production", "Production ", "prod", "staging", ""])
+def test_seed_guard_is_allowlist(env):
+    with pytest.raises(SeedNotAllowed):
+        assert_seed_allowed(Settings(demo_mode=True, app_env=env))
