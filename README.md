@@ -22,17 +22,20 @@ explainable intelligence. People provide the signal, AI organises it, humans dec
 | Opt-in SMS confirmation adapter | implemented; fake notifier tested |
 | Priority scoring + GET /priorities (API-key protected, no PII output) | working, tested |
 | Synthetic Mombasa demo data | working, tested |
-| Web dashboard (frontend/, Next.js) | working locally; tests/build/typecheck in CI |
+| Landing page + dashboard (frontend/, Next.js) | live on Render (see Production deployment); typecheck/test/lint/build green |
 | Voice/STT, clustering, LLM enrichment, project tracking | not implemented |
 
 ## Dashboard
+
+Live: **https://fahari-dashboard.onrender.com** (landing page at `/`, planner
+dashboard at `/dashboard`, backed by the production API below).
 
 The read-only dashboard ranks ward/need combinations, shows score components and evidence, and supports
 window and ward filters. It uses a single server-side API key, has no user login, and does not expose the
 key to the browser. It is intended for a controlled demo/internal environment; no public authentication
 layer or map is included.
 
-Run it with:
+Run it locally with:
 - cd frontend
 - cp .env.example .env.local
 - Set BACKEND_URL and DASHBOARD_API_KEY to the backend values.
@@ -40,6 +43,7 @@ Run it with:
 - npm run dev
 - npm test
 - npm run typecheck
+- npm run lint
 - npm run build
 
 **Demo:** see [docs/DEMO.md](docs/DEMO.md) for a 5-minute Mombasa walkthrough and `scripts/demo_ussd.sh`.
@@ -55,8 +59,23 @@ Run it with:
 
 backend/app/     FastAPI API, channels, notifications, enrichment and priority services
 backend/tests/   pytest
-frontend/        Next.js priorities dashboard (Gate 5)
+frontend/        Next.js landing page (/) + planner dashboard (/dashboard)
+frontend/components/landing/  landing sections (Ticker, Nav, Hero, Problem, Journey, Channels, Score, DashboardPreview, StatusPipeline, Actors, Governance, Testimonials, FinalCta, Footer)
 scripts/         seed + smoke scripts
+docs/DEPLOY.md   production deployment notes
+
+## Production deployment
+
+Frontend and backend are separate Render services, both auto-deploying from `main`.
+Details in [docs/DEPLOY.md](docs/DEPLOY.md).
+
+- Frontend: `fahari-dashboard` → https://fahari-dashboard.onrender.com
+  (`cd frontend && npm install && npm run build` / `cd frontend && npm start`)
+- Backend: `peoples-priorities-api-gsvz` → https://peoples-priorities-api-gsvz.onrender.com
+  (Docker, defined in `render.yaml`)
+
+Note: the repo has no committed `frontend/package-lock.json`, so the Render
+frontend build uses `npm install`, not `npm ci`.
 
 ## Security basics
 
