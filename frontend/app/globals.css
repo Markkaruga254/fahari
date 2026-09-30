@@ -1,0 +1,32 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background: #f6f3ea; color: #1f2a24; }
+main { max-width: 1180px; margin: 0 auto; padding: 42px 22px 60px; }
+h1 { margin: 0 0 8px; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.04em; }
+p { line-height: 1.55; }
+.muted { color: #66716a; }
+.banner { margin: 22px 0; padding: 14px 16px; border: 1px solid #c9a35d; background: #fff4d6; border-radius: 10px; }
+.error { margin: 22px 0; padding: 14px 16px; border: 1px solid #b54d42; background: #fff0ee; border-radius: 10px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+.stat { background: white; border: 1px solid #d9ddd8; border-radius: 12px; padding: 16px; }
+.stat strong { display: block; font-size: 1.55rem; margin-top: 5px; }
+.filters { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin: 24px 0; }
+label { display: grid; gap: 6px; font-size: .9rem; font-weight: 700; }
+select, input { padding: 10px 12px; border: 1px solid #aeb8b1; border-radius: 8px; background: white; font: inherit; }
+button { padding: 10px 14px; border: 0; border-radius: 8px; background: #263a31; color: white; font: inherit; cursor: pointer; }
+.table-wrap { overflow-x: auto; background: white; border: 1px solid #d9ddd8; border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th, td { text-align: left; padding: 13px 14px; border-bottom: 1px solid #e4e7e3; vertical-align: top; }
+th { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: #66716a; }
+.score { font-weight: 800; white-space: nowrap; }
+.bar { height: 6px; background: #e7ebe7; border-radius: 99px; overflow: hidden; margin-top: 7px; }
+.bar > span { display: block; height: 100%; background: #6d8b78; }
+.breakdown { min-width: 180px; }
+.breakdown div { display: flex; justify-content: space-between; gap: 10px; font-size: .82rem; }
+footer { margin-top: 28px; font-size: .84rem; color: #66716a; }
+@media (max-width: 700px) { main { padding: 28px 14px 44px; } .stats { grid-template-columns: 1fr; } }
+@media (prefers-color-scheme: dark) {
+  body { background: #18201c; color: #edf1ed; } .muted, footer, th { color: #aab5ad; }
+  .stat, .table-wrap, select, input { background: #202a25; border-color: #3a4740; color: #edf1ed; }
+  th, td { border-color: #344139; } .banner { background: #332d1d; } .error { background: #351f1c; }
+}
