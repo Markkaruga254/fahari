@@ -48,6 +48,8 @@ Run it locally with:
 - npm run build
 
 **Demo:** see [docs/DEMO.md](docs/DEMO.md) for a 5-minute Mombasa walkthrough and `scripts/demo_ussd.sh`.
+For a persistent one-command local stack (database + seeded API + wired dashboard),
+run `./scripts/demo_stack.sh`.
 
 ## Backend quick start
 
