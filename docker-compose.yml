@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: pp
       POSTGRES_DB: pp
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"  # local tooling only; never expose the DB to the network
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -28,6 +28,17 @@ services:
       db:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://api:8000
+      # Interpolated from .env (same value the API uses). Server-side only.
+      DASHBOARD_API_KEY: ${DASHBOARD_API_KEY:?set DASHBOARD_API_KEY in .env}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
 
 volumes:
   pgdata:
