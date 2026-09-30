@@ -11,7 +11,7 @@ test("buildQuery encodes ward", () => {
   const q = buildQuery({ days: 30, ward: "Likoni Ward" });
   assert.match(q, /days=30/);
   assert.match(q, /limit=50/);
-  assert.match(q, /ward=Likoni+Ward/);
+  assert.match(q, /ward=Likoni\+Ward/);
 });
 
 test("API key is sent in header, never URL", async () => {
