@@ -5,113 +5,59 @@
 > Every ward gets a voice, every voice gets counted once, and every priority shows its receipts.
 
 Residents report development needs (water, roads, health, education, ...) through channels that work on any
-phone: **Africa's Talking USSD, Voice and SMS**, plus a web form. AI turns raw submissions into structured
+phone: **Africa's Talking USSD, Voice and SMS**, plus a web dashboard. AI turns raw submissions into structured
 records, similar reports are clustered, and a **transparent, equity-aware priority score** gives planners
 explainable intelligence. People provide the signal, AI organises it, humans decide.
 
-> **All demo data in this repository is synthetic** and the dashboard labels it `SYNTHETIC DEMO DATA`.
+> **All demo data in this repository is synthetic** and the dashboard labels it SYNTHETIC DEMO DATA.
 > It never represents real residents.
 
-## Flow
-
-```
-Resident -> Africa's Talking (USSD / Voice) -> FastAPI -> validate -> PostgreSQL
-         -> AI enrichment -> clustering -> priority engine -> dashboard -> SMS confirmation
-```
-
-## What actually works today (verified against Postgres 16)
+## What actually works today
 
 | Area | State |
 |---|---|
-| USSD report flow (ward -> category -> description -> confirm) with re-prompts | working, tested |
-| Persistence of reports (phone stored only as peppered hash) | working, tested |
-| Deterministic keyword enrichment (EN + Swahili), stored per submission | working, tested |
-| Opt-in SMS confirmation via Africa's Talking | implemented; only tested with a fake notifier |
-| Priority scoring + `GET /priorities` (API-key protected, no PII in output) | working, tested |
-| Synthetic Mombasa demo data (`python -m app.services.demo_seed [--reset]`) | working, tested |
-| Voice, speech-to-text, clustering, LLM enrichment, web dashboard, project tracking | **not implemented** |
-| USSD menu option 2 ("Community priorities") | placeholder message only |
-| Live Africa's Talking sandbox / Render deployment | **not verified** |
+| USSD report flow with re-prompts | working, tested |
+| Persistence of reports with peppered phone hash | working, tested |
+| Deterministic keyword enrichment (EN + Swahili) | working, tested |
+| Opt-in SMS confirmation adapter | implemented; fake notifier tested |
+| Priority scoring + GET /priorities (API-key protected, no PII output) | working, tested |
+| Synthetic Mombasa demo data | working, tested |
+| Web dashboard (frontend/, Next.js) | working locally; tests/build/typecheck in CI |
+| Voice/STT, clustering, LLM enrichment, project tracking | not implemented |
 
-Enrichment is stored alongside each report but does not yet influence category or priority scoring.
+## Dashboard
 
-## Quick start
+The read-only dashboard ranks ward/need combinations, shows score components and evidence, and supports
+window and ward filters. It uses a single server-side API key, has no user login, and does not expose the
+key to the browser. It is intended for a controlled demo/internal environment; no public authentication
+layer or map is included.
 
-```bash
-cp .env.example .env            # then edit: WEBHOOK_SECRET, PHONE_HASH_PEPPER, AT_API_KEY, ...
-docker compose up -d --build    # postgres + api on :8000
-curl localhost:8000/health      # {"status":"ok"}
-curl localhost:8000/ready       # {"status":"ready","db":"up"}
-```
+Run it with:
+- cd frontend
+- cp .env.example .env.local
+- Set BACKEND_URL and DASHBOARD_API_KEY to the backend values.
+- npm install
+- npm run dev
+- npm test
+- npm run typecheck
+- npm run build
 
-Run tests without Docker:
+## Backend quick start
 
-```bash
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pytest -q
-```
-
-Run the API locally:
-
-```bash
-cd backend
-uvicorn app.main:app --reload --port 8000
-```
-
-## Expose the webhook to Africa's Talking
-
-```bash
-# pick one
-ngrok http 8000
-cloudflared tunnel --url http://localhost:8000
-```
-
-In the AT sandbox dashboard, set the USSD callback URL to:
-
-```
-https://<your-tunnel-host>/ussd/<WEBHOOK_SECRET>
-```
-
-The current Gate 2 USSD flow is:
-
-```text
-1 Report a need
-  -> ward
-  -> category (water / roads / health / education / other)
-  -> description
-  -> confirmation
-  -> PostgreSQL submission
-```
+- cp .env.example .env
+- docker compose up -d --build
+- curl localhost:8000/health
+- curl localhost:8000/ready
 
 ## Layout
 
-```
-backend/app/
-  main.py         FastAPI app
-  config.py       settings from env
-  db/             SQLAlchemy session + submission model
-  channels/       USSD webhook + pure state machine
-  notify/         Notifier interface, FakeNotifier, Africa's Talking adapter
-  ai/             Extractor interface + fallback (Gate 3)
-  stt/            SpeechToText interface (Gate 6)
-  services/       reports, clustering, priority engine
-  api/            dashboard-facing REST endpoints
-backend/tests/    pytest
-frontend/         Next.js dashboard (Gate 5)
-scripts/          seed + end-to-end smoke scripts
-```
-
-## Design rules
-
-- Africa's Talking, AI, SMS and speech-to-text sit behind interfaces, so tests never touch a real service.
-- The app must run with `AI_ENABLED=false` (deterministic keyword fallback).
-- USSD state is derived from the AT `text` chain, so the state machine is a near-pure function.
-- Dev/demo endpoints exist only when `DEMO_MODE=true`.
+backend/app/     FastAPI API, channels, notifications, enrichment and priority services
+backend/tests/   pytest
+frontend/        Next.js priorities dashboard (Gate 5)
+scripts/         seed + smoke scripts
 
 ## Security basics
 
-Secrets live in `.env` (git-ignored). Webhooks sit behind a secret path token (redacted from access logs). Inputs are validated and
-length-limited, SQL is parameterised, phone numbers are never logged raw, and AI output is validated against
-closed enums before it is stored.
+Secrets live in .env (git-ignored). Webhooks sit behind a secret path token, inputs are validated and
+length-limited, SQL is parameterised, phone numbers are never logged raw, and AI output is validated before
+it is stored.
