@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     at_api_key: str = ""
     at_sender_id: str = ""
     at_voice_number: str = ""
+    sms_enabled: bool = False
 
     ai_enabled: bool = True
     anthropic_api_key: str = ""
