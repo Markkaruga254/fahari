@@ -1,7 +1,7 @@
 import logging
 import re
 
-_CALLBACK_PATH = re.compile(r"(/(?:ussd|sms)/)[^/\s\"?#]+")
+_CALLBACK_PATH = re.compile(r"(/(?:ussd|sms|voice)/)[^/\s\"?#]+")
 
 
 def redact_webhook_secret(value: str) -> str:

@@ -6,6 +6,7 @@ from app.logging_filters import RedactWebhookSecret, redact_webhook_secret
 def test_redacts_secret_in_path():
     assert redact_webhook_secret("/ussd/s3cr3t-token") == "/ussd/[redacted]"
     assert redact_webhook_secret("/sms/s3cr3t-token") == "/sms/[redacted]"
+    assert redact_webhook_secret("/voice/s3cr3t-token") == "/voice/[redacted]"
     assert redact_webhook_secret("/health") == "/health"
 
 
