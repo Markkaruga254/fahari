@@ -176,6 +176,9 @@ def test_enrichment_commit_failure_keeps_submission_and_success_response(client,
         def add(self, item):
             self.added.append(item)
 
+        def scalar(self, *_a, **_k):
+            return None
+
         def commit(self):
             self.commits += 1
             if self.commits == 2:  # 1st = submission, 2nd = enrichment
