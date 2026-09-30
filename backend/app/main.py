@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.api import health, priorities
 from app.channels import ussd
-from app.config import get_settings
+from app.config import get_settings, validate_settings
 from app.db.models import Base
 from app.db.session import get_engine
 from app.logging_filters import install as install_log_filters
@@ -12,10 +12,11 @@ from app.logging_filters import install as install_log_filters
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    if get_settings().auto_create_db:
+    settings = get_settings()
+    validate_settings(settings)  # fail fast instead of 503-ing on the first resident
+    if settings.auto_create_db:
         Base.metadata.create_all(bind=get_engine())
     yield
-
 
 
 install_log_filters()

@@ -47,3 +47,36 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+# Environments where weak/missing secrets and demo mode are tolerated. Anything else
+# (including typos such as "prod" or "Production ") is treated as production-like.
+DEV_ENVS = frozenset({"dev", "development", "local", "test"})
+MIN_SECRET_LENGTH = 16
+
+
+class ConfigError(RuntimeError):
+    pass
+
+
+def config_problems(settings: Settings) -> list[str]:
+    """Problems that make a production-like deployment unsafe. Never includes secret values."""
+    if settings.app_env.strip().lower() in DEV_ENVS:
+        return []
+    problems = []
+    for name in ("webhook_secret", "phone_hash_pepper", "dashboard_api_key"):
+        value = getattr(settings, name)
+        label = name.upper()
+        if not value:
+            problems.append(f"{label} is not set")
+        elif value.startswith("change-me") or len(value) < MIN_SECRET_LENGTH:
+            problems.append(f"{label} is a placeholder or shorter than {MIN_SECRET_LENGTH} chars")
+    if settings.demo_mode:
+        problems.append("DEMO_MODE must be false outside dev/test")
+    return problems
+
+
+def validate_settings(settings: Settings) -> None:
+    problems = config_problems(settings)
+    if problems:
+        raise ConfigError("Unsafe configuration: " + "; ".join(problems))
