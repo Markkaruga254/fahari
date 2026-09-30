@@ -28,9 +28,12 @@ from app.synthetic import SYNTHETIC_PREFIX, is_synthetic
 SEED = 2026
 WINDOW_DAYS = 30
 
+# (residents in the ward, reporters per category). Big wards have needs spread across many
+# categories; small wards have one concentrated need. That contrast is what the demo shows:
+# equity-aware scoring lets a concentrated need in a small ward outrank a diffuse one in a big ward.
 WARDS: dict[str, tuple[int, dict[str, int]]] = {
-    "Changamwe": (120, {"roads": 45, "health": 30, "water": 20, "education": 10}),
-    "Likoni": (90, {"water": 35, "roads": 25, "health": 25, "education": 10}),
+    "Changamwe": (120, {"roads": 26, "health": 12, "water": 8, "education": 4}),
+    "Likoni": (90, {"water": 22, "roads": 10, "health": 8, "education": 4}),
     "Jomvu Kuu": (40, {"health": 22, "water": 10, "roads": 8}),
     "Miritini": (25, {"water": 15, "roads": 6, "health": 4}),
     "Port Reitz": (15, {"education": 9, "health": 5}),
@@ -69,9 +72,17 @@ class SeedNotAllowed(RuntimeError):
     """Raised when demo seeding is attempted outside the safe environment."""
 
 
+# Allowlist, not blocklist: "prod", "Production " or any typo must not unlock seeding.
+SEED_ALLOWED_ENVS = frozenset({"dev", "development", "local", "test"})
+
+
 def assert_seed_allowed(settings: Settings) -> None:
-    if not settings.demo_mode or settings.app_env.lower() == "production":
-        raise SeedNotAllowed("Synthetic demo seeding requires DEMO_MODE=true and non-production APP_ENV")
+    env = settings.app_env.strip().lower()
+    if not settings.demo_mode or env not in SEED_ALLOWED_ENVS:
+        raise SeedNotAllowed(
+            "Synthetic demo seeding requires DEMO_MODE=true and APP_ENV in "
+            + ", ".join(sorted(SEED_ALLOWED_ENVS))
+        )
 
 
 def _resident_hash(ward: str, index: int) -> str:
