@@ -1,7 +1,9 @@
 import hmac
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException
 from fastapi.responses import PlainTextResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.extractor import Extractor, get_extractor
@@ -16,6 +18,8 @@ from app.services.confirmation import send_confirmation
 from app.services.enrichment import enrich_submission
 
 router = APIRouter()
+
+REPLAY_WINDOW = timedelta(minutes=10)
 
 
 @router.post("/ussd/{secret}", response_class=PlainTextResponse)
@@ -43,17 +47,32 @@ def ussd_callback(
         except ValueError as exc:
             raise HTTPException(status_code=503, detail="Service is not configured") from exc
 
-        submission = Submission(
-            phone_hash=phone_hash,
-            ward=result.ward[:120],
-            category=result.category,
-            description=result.description[:200],
+        ward, description = result.ward[:120], result.description[:200]
+        # AT may retry a callback and the chain re-sends the final answer, so an identical
+        # report from the same phone shortly after the first is treated as a replay.
+        replay = db.scalar(
+            select(Submission.id)
+            .where(
+                Submission.phone_hash == phone_hash,
+                Submission.ward == ward,
+                Submission.category == result.category,
+                Submission.description == description,
+                Submission.created_at >= datetime.now(timezone.utc) - REPLAY_WINDOW,
+            )
+            .limit(1)
         )
-        db.add(submission)
-        db.commit()
-        enrich_submission(db, submission, extractor)
-        if notifier is not None and phoneNumber:
-            # Runs after the response is sent; the raw number is never persisted.
-            background_tasks.add_task(send_confirmation, notifier, phoneNumber, submission.id)
+        if replay is None:
+            submission = Submission(
+                phone_hash=phone_hash,
+                ward=ward,
+                category=result.category,
+                description=description,
+            )
+            db.add(submission)
+            db.commit()
+            enrich_submission(db, submission, extractor)
+            if notifier is not None and phoneNumber:
+                # Runs after the response is sent; the raw number is never persisted.
+                background_tasks.add_task(send_confirmation, notifier, phoneNumber, submission.id)
 
     return PlainTextResponse(result.response, media_type="text/plain")
