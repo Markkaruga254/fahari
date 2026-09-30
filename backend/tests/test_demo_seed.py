@@ -64,7 +64,7 @@ def test_generated_data_is_valid():
         assert row.phone_hash.startswith(SYNTHETIC_PREFIX)
         assert len(row.phone_hash) <= 64
         assert not row.phone_hash == "f" * 64
-        assert row.category in {"water", "roads", "health", "education"}
+        assert row.category in {"water", "roads", "health", "education", "other"}
         assert row.ward in WARDS
         assert 3 <= len(row.description) <= 200
         assert row.created_at <= NOW
