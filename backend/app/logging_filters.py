@@ -1,11 +1,11 @@
 import logging
 import re
 
-_USSD_PATH = re.compile(r"(/ussd/)[^/\s\"?#]+")
+_CALLBACK_PATH = re.compile(r"(/(?:ussd|sms)/)[^/\s\"?#]+")
 
 
 def redact_webhook_secret(value: str) -> str:
-    return _USSD_PATH.sub(r"\1[redacted]", value)
+    return _CALLBACK_PATH.sub(r"\1[redacted]", value)
 
 
 class RedactWebhookSecret(logging.Filter):
