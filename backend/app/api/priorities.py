@@ -10,6 +10,7 @@ from app.config import Settings, get_settings
 from app.db.models import Submission
 from app.db.session import get_session
 from app.services.priority import PARAMS, WEIGHTS, ReportRow, compute_priorities, ward_key
+from app.synthetic import is_synthetic
 
 router = APIRouter()
 
@@ -54,10 +55,14 @@ def get_priorities(
         wanted = ward_key(ward)
         items = [i for i in items if ward_key(i.ward) == wanted]
 
+    synthetic = sum(1 for r in records if is_synthetic(r.phone_hash))
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "window_days": days,
         "reports_considered": len(rows),
+        "synthetic_reports": synthetic,
+        "contains_synthetic_data": synthetic > 0,
         "method": {"weights": WEIGHTS, **PARAMS},
         "items": [asdict(i) for i in items[:limit]],
     }
