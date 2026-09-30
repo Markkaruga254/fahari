@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
+from app.ai.extractor import Extractor, get_extractor
 from app.channels.ussd_state import parse_submission
 from app.config import Settings, get_settings
 from app.db.models import Submission
 from app.db.session import get_session
 from app.security import hash_phone
+from app.services.enrichment import enrich_submission
 
 router = APIRouter()
 
@@ -23,6 +25,7 @@ def ussd_callback(
     networkCode: str = Form("", max_length=32),
     settings: Settings = Depends(get_settings),
     db: Session = Depends(get_session),
+    extractor: Extractor = Depends(get_extractor),
 ):
     if not settings.webhook_secret or not hmac.compare_digest(secret, settings.webhook_secret):
         raise HTTPException(status_code=404)
@@ -43,5 +46,6 @@ def ussd_callback(
         )
         db.add(submission)
         db.commit()
+        enrich_submission(db, submission, extractor)
 
     return PlainTextResponse(result.response, media_type="text/plain")
