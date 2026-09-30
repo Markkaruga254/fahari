@@ -18,9 +18,7 @@ services:
       - key: STT_PROVIDER
         value: fake
       - key: DATABASE_URL
-        fromDatabase:
-          name: peoples-priorities-db
-          property: connectionString
+        sync: false
       - key: WEBHOOK_SECRET
         generateValue: true
       - key: PHONE_HASH_PEPPER
@@ -42,8 +40,3 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
-
-databases:
-  - name: peoples-priorities-db
-    plan: free
-    postgresMajorVersion: "16"
