@@ -1,4 +1,4 @@
-import { buildQuery, DAY_OPTIONS, fetchPriorities, parseFilters, percent } from "../lib/api";
+import { DAY_OPTIONS, fetchPriorities, parseFilters, percent } from "../lib/api";
 
 export const dynamic = "force-dynamic";
 
