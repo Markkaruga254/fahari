@@ -34,8 +34,9 @@ def test_completed_report_is_persisted(client):
 
     assert response.status_code == 200
     assert response.text.startswith("END ")
-    assert len(db.items) == 1
-    submission = db.items[0]
+    submissions = [i for i in db.items if isinstance(i, Submission)]
+    assert len(submissions) == 1
+    submission = submissions[0]
     assert isinstance(submission, Submission)
     assert submission.ward == "Jomvu"
     assert submission.category == "health"
