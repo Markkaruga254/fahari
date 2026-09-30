@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: peoples-priorities-api
+    name: peoples-priorities-api-gsvz
     runtime: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
@@ -27,7 +27,7 @@ services:
         generateValue: true
       - key: PUBLIC_BASE_URL
         fromService:
-          name: peoples-priorities-api
+          name: peoples-priorities-api-gsvz
           type: web
           envVarKey: RENDER_EXTERNAL_URL
       - key: AT_USERNAME
