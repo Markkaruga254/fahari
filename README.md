@@ -19,25 +19,29 @@ Resident -> Africa's Talking (USSD / Voice) -> FastAPI -> validate -> PostgreSQL
          -> AI enrichment -> clustering -> priority engine -> dashboard -> SMS confirmation
 ```
 
-## Status (build gates)
+## What actually works today (verified against Postgres 16)
 
-| Gate | Scope | Status |
-|---|---|---|
-| 1 | Skeleton + Africa's Talking connectivity | complete |
-| 2 | USSD -> FastAPI -> PostgreSQL | **implemented on `build/people-priorities-core`** |
-| 3 | AI enrichment + fallback + clustering + SMS | next |
-| 4 | Priority engine + APIs + seed data | pending |
-| 5 | Dashboard (Next.js) | pending |
-| 6 | Voice + project tracking | pending |
-| 7 | End-to-end testing + hardening | pending |
-| 8 | Demo / release | pending |
+| Area | State |
+|---|---|
+| USSD report flow (ward -> category -> description -> confirm) with re-prompts | working, tested |
+| Persistence of reports (phone stored only as peppered hash) | working, tested |
+| Deterministic keyword enrichment (EN + Swahili), stored per submission | working, tested |
+| Opt-in SMS confirmation via Africa's Talking | implemented; only tested with a fake notifier |
+| Priority scoring + `GET /priorities` (API-key protected, no PII in output) | working, tested |
+| Synthetic Mombasa demo data (`python -m app.services.demo_seed [--reset]`) | working, tested |
+| Voice, speech-to-text, clustering, LLM enrichment, web dashboard, project tracking | **not implemented** |
+| USSD menu option 2 ("Community priorities") | placeholder message only |
+| Live Africa's Talking sandbox / Render deployment | **not verified** |
+
+Enrichment is stored alongside each report but does not yet influence category or priority scoring.
 
 ## Quick start
 
 ```bash
 cp .env.example .env            # then edit: WEBHOOK_SECRET, PHONE_HASH_PEPPER, AT_API_KEY, ...
 docker compose up -d --build    # postgres + api on :8000
-curl localhost:8000/health      # {"status":"ok","db":"up"}
+curl localhost:8000/health      # {"status":"ok"}
+curl localhost:8000/ready       # {"status":"ready","db":"up"}
 ```
 
 Run tests without Docker:
@@ -108,6 +112,6 @@ scripts/          seed + end-to-end smoke scripts
 
 ## Security basics
 
-Secrets live in `.env` (git-ignored). Webhooks sit behind a secret path token. Inputs are validated and
+Secrets live in `.env` (git-ignored). Webhooks sit behind a secret path token (redacted from access logs). Inputs are validated and
 length-limited, SQL is parameterised, phone numbers are never logged raw, and AI output is validated against
 closed enums before it is stored.
