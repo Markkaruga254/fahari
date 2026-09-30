@@ -40,7 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="en"
-      className={`${display.variable} ${bodyFont.variable} ${mono.variable} ${editorial.variable}`}
+      className={`scroll-smooth ${display.variable} ${bodyFont.variable} ${mono.variable} ${editorial.variable}`}
     >
       <body className="bg-obsidian font-body text-sand antialiased">{children}</body>
     </html>
