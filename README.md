@@ -21,6 +21,7 @@ explainable intelligence. People provide the signal, AI organises it, humans dec
 | Deterministic keyword enrichment (EN + Swahili) | working, tested |
 | Opt-in SMS confirmation adapter | implemented; fake notifier tested |
 | Priority scoring + GET /priorities (API-key protected, no PII output) | working, tested |
+| Inbound SMS callback POST /sms/&lt;secret&gt; (receipt + replay guard, no report fabricated) | SMS CALLBACK IMPL, tested; not yet wired to AT |
 | Synthetic Mombasa demo data | working, tested |
 | Landing page + dashboard (frontend/, Next.js) | live on Render (see Production deployment); typecheck/test/lint/build green |
 | Voice/STT, clustering, LLM enrichment, project tracking | not implemented |
@@ -54,6 +55,18 @@ Run it locally with:
 - docker compose up -d --build
 - curl localhost:8000/health
 - curl localhost:8000/ready
+
+## SMS callback (impl, not live)
+
+`POST /sms/<WEBHOOK_SECRET>` receives Africa's Talking SMS callbacks (`from`,
+`text`, `id`, `date`). The secret path is checked exactly like the USSD
+callback (wrong secret → 404). Sender numbers are normalized and pepper-hashed
+— raw numbers and message bodies are never stored or logged. Each AT message
+`id` is stored once as an `SmsReceipt` (replays → 200, one effect; missing ids
+fall back to a 10-minute same-phone/same-body window). A free-text SMS carries
+no ward, so v1 deliberately records the receipt only and never fabricates a
+`Submission`. Status: SMS CALLBACK IMPL — do not point AT at it until
+`AT_API_KEY`/`SMS_ENABLED` are configured and the route is deployed.
 
 ## Layout
 
