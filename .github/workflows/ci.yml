@@ -23,11 +23,9 @@ jobs:
           --health-interval=3s
           --health-timeout=3s
           --health-retries=20
-
     defaults:
       run:
         working-directory: backend
-
     env:
       WEBHOOK_SECRET: test-secret
       PHONE_HASH_PEPPER: test-pepper
@@ -35,7 +33,6 @@ jobs:
       AUTO_CREATE_DB: true
       AI_ENABLED: false
       STT_PROVIDER: fake
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,3 +42,23 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run tests
         run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - name: Unit tests
+        run: npm test
+      - name: Build and typecheck
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+      - name: Typecheck
+        run: npm run typecheck
