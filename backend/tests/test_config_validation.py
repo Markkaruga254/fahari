@@ -8,6 +8,7 @@ GOOD = dict(
     webhook_secret="w" * 32,
     phone_hash_pepper="p" * 32,
     dashboard_api_key="d" * 32,
+    database_url="postgresql+psycopg://u:p@db.example:5432/app",
     demo_mode=False,
 )
 
