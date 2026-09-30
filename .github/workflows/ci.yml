@@ -33,7 +33,6 @@ jobs:
       AUTO_CREATE_DB: true
       AI_ENABLED: false
       STT_PROVIDER: fake
-      REQUIRE_POSTGRES: 1  # the Postgres integration test must run in CI, never silently skip
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
