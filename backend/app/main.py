@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import health
+from app.api import health, priorities
 from app.channels import ussd
 from app.config import get_settings
 from app.db.models import Base
@@ -18,4 +18,5 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="People's Priorities", version="0.2.0", lifespan=lifespan)
 app.include_router(health.router)
+app.include_router(priorities.router)
 app.include_router(ussd.router)
