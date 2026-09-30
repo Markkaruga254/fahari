@@ -42,6 +42,8 @@ Run it with:
 - npm run typecheck
 - npm run build
 
+**Demo:** see [docs/DEMO.md](docs/DEMO.md) for a 5-minute Mombasa walkthrough and `scripts/demo_ussd.sh`.
+
 ## Backend quick start
 
 - cp .env.example .env
