@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     phone_hash_pepper: str = ""
     dashboard_api_key: str = ""
 
-    database_url: str = "postgresql+psycopg://pp:pp@localhost:5432/pp"
+    # No implicit database target: production must receive DATABASE_URL from Render.
+    database_url: str = ""
 
     at_username: str = "sandbox"
     at_api_key: str = ""
@@ -73,6 +74,12 @@ def config_problems(settings: Settings) -> list[str]:
             problems.append(f"{label} is a placeholder or shorter than {MIN_SECRET_LENGTH} chars")
     if settings.demo_mode:
         problems.append("DEMO_MODE must be false outside dev/test")
+    if not settings.database_url.strip():
+        problems.append("DATABASE_URL is not set")
+    else:
+        database_url = settings.database_url.strip().lower()
+        if any(host in database_url for host in ("@localhost:", "@127.0.0.1:", "@[::1]:")):
+            problems.append("DATABASE_URL must not point to localhost in production-like environments")
     return problems
 
 
