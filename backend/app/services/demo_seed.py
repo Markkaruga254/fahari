@@ -114,9 +114,18 @@ def build_submissions(now: datetime) -> list[Submission]:
         for category, count in category_weights.items():
             selected = residents[: min(count, resident_count)]
             for index in selected:
-                reports = 1 + int(rng.random() < 0.3) + int(rng.random() < 0.1)
-                for _ in range(reports):
-                    age_days = int(WINDOW_DAYS * rng.random() ** 1.5)
+                # Give the smaller wards repeated reports on distinct days so the
+                # demo visibly exercises the persistence component of the scorer.
+                # This affects synthetic data only; production scoring is unchanged.
+                if resident_count <= 40:
+                    report_days = rng.sample(range(WINDOW_DAYS), k=3)
+                else:
+                    reports = 1 + int(rng.random() < 0.3) + int(rng.random() < 0.1)
+                    report_days = [
+                        int(WINDOW_DAYS * rng.random() ** 1.5)
+                        for _ in range(reports)
+                    ]
+                for age_days in report_days:
                     created_at = now - timedelta(
                         days=age_days,
                         hours=rng.randrange(24),
